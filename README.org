@@ -53,6 +53,3 @@ RESULTS:
 : (:foreground "blue" :weight bold :slant italic :foreground "#ECBE7B")
 
 * See [[https://github.com/rgkirch/my-emacs-packages][my other emacs packages]]
-:PROPERTIES:
-:CREATED-AT: [2025-06-17 19:04:14]
-:END:
