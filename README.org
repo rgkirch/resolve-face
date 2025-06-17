@@ -43,7 +43,7 @@ Example:
 (resolve-face 'font-lock-warning-face)
 #+end_src
 
-\#+RESULTS:
+RESULTS:
 : (:foreground "#ECBE7B")
 
 #+begin_src emacs-lisp :results verbatim
@@ -51,5 +51,5 @@ Example:
 (resolve-face '(:inherit (bold-italic warning) :foreground "blue"))
 #+end_src
 
-\#+RESULTS:
+RESULTS:
 : (:foreground "blue" :weight bold :slant italic :foreground "#ECBE7B")
