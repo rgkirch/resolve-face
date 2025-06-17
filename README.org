@@ -1,8 +1,6 @@
-#+TITLE: Face Resolve
 #+AUTHOR: Richie Kirchofer
-#+DESCRIPTION: An Emacs Lisp utility to completely resolve a face's visual attributes, including all inheritance.
 
-* Face Resolve
+* Resolve Face
 
 This package provides a single utility function, =resolve-face=, designed to fully resolve any Emacs face specification into a final, flat property list (plist) of its visual attributes.
 
@@ -53,3 +51,8 @@ RESULTS:
 
 RESULTS:
 : (:foreground "blue" :weight bold :slant italic :foreground "#ECBE7B")
+
+* See [[https://github.com/rgkirch/my-emacs-packages][my other emacs packages]]
+:PROPERTIES:
+:CREATED-AT: [2025-06-17 19:04:14]
+:END:
