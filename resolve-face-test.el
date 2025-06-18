@@ -1,77 +1,124 @@
-;;; resolve-face-test.el --- Tests for resolve-face.el -*- lexical-binding: t; -*-
+;;; resolve-face-test.el --- ERT tests for resolve-face.el -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2025 Richie Kirchofer
 
 ;; Author: Richie Kirchofer
-;; Keywords: faces, convenience, tests
+;; Version: 0.1
+;; Package-Requires: ((emacs "25.1"))
+;; Keywords: faces
+;; URL: https://github.com/rgkirch/resolve-face
+
+;; SPDX-License-Identifier: GPL-3.0-or-later
+;;
+;; This program is free software: you can redistribute it and/or modify it under
+;; the terms of the GNU General Public License as published by the Free Software
+;; Foundation, either version 3 of the License, or (at your option) any later
+;; version.
+;;
+;; This program is distributed in the hope that it will be useful, but WITHOUT
+;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+;; FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+;; details.
+;;
+;; You should have received a copy of the GNU General Public License along with
+;; this program. If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
-;; This file contains tests for the `resolve-face` function using the
-;; built-in `ert` (Emacs Lisp Regression Testing) framework.
-;;
-;; To run these tests, evaluate the buffer and then run `M-x ert-run-tests-interactively`.
+;; This file contains ERT (Emacs Lisp Regression Testing) tests for the
+;; `resolve-face` utility and its helper functions defined in `resolve-face.el`.
 
 ;;; Code:
 
-(require 'resolve-face)
 (require 'ert)
+(require 'resolve-face)
+(require 'cl-lib)
 
-;; Define some test faces to create a predictable environment
-(defface test-face-parent
-  '((t :foreground "red" :weight bold))
-  "A parent face for testing.")
+(defface resolve-face-test-face-1
+  nil
+  "Face for testing."
+  :group 'resolve-face-test)
 
-(defface test-face-grandparent
-  '((t :background "blue" :slant italic))
-  "A grandparent face for testing.")
+(defface resolve-face-test-face-2
+  nil
+  "Face for testing."
+  :group 'resolve-face-test)
 
-(defface test-face-child
-  '((t :inherit test-face-parent :foreground "green"))
-  "A child face that inherits and overrides.")
+(defface resolve-face-test-face-3
+  nil
+  "Face for testing."
+  :group 'resolve-face-test)
 
-(ert-deftest resolve-face-named-face-test ()
-  "Test resolving a simple named face."
-  (should (plist-member (resolve-face 'test-face-parent) :foreground))
-  (should (equal (plist-get (resolve-face 'test-face-parent) :foreground) "red"))
-  (should (equal (plist-get (resolve-face 'test-face-parent) :weight) 'bold)))
+(defun resolve-face-test-face-specs-set (&rest specs)
+  "Set SPECS on faces."
+  (cl-loop for (face spec . rest) on specs by #'cddr
+           collect
+           (face-spec-set face
+                          spec
+                          'face-defface-spec)))
 
-(ert-deftest resolve-face-named-inheritance-test ()
-  "Test resolving a named face with inheritance."
-  (let ((resolved (resolve-face 'test-face-child)))
-    ;; It should have its own foreground color.
-    (should (equal (plist-get resolved :foreground) "green"))
-    ;; It should inherit the weight from its parent.
-    (should (equal (plist-get resolved :weight) 'bold))
-    ;; It should NOT contain the :inherit attribute.
-    (should-not (plist-member resolved :inherit))))
+(ert-deftest resolve-face-test-negative-two ()
+  "Relative is applied to inherited absolute."
+  (should (equal '((:foreground . "blue"))
+                 (resolve-face-attributes '(:foreground "blue") nil t))))
 
-(ert-deftest resolve-face-anonymous-single-inheritance-test ()
-  "Test an anonymous face with single inheritance."
-  (let ((resolved (resolve-face '(:inherit test-face-parent :slant italic))))
-    ;; It should have its own slant.
-    (should (equal (plist-get resolved :slant) 'italic))
-    ;; It should inherit foreground and weight from parent.
-    (should (equal (plist-get resolved :foreground) "red"))
-    (should (equal (plist-get resolved :weight) 'bold))))
+(ert-deftest resolve-face-test-negative-one ()
+  "Relative is applied to inherited absolute."
+  (resolve-face-test-face-specs-set 'resolve-face-test-face-2
+                                    '((t (:height 100)))
+                                    'resolve-face-test-face-1
+                                    '((t (:height 1.5 :inherit resolve-face-test-face-2))))
+  (should (equal '((:height . 150))
+                 (resolve-face-attributes 'resolve-face-test-face-1 nil t))))
 
-(ert-deftest resolve-face-anonymous-multiple-inheritance-test ()
-  "Test an anonymous face with multiple inheritance."
-  (let ((resolved (resolve-face '(:inherit (test-face-parent test-face-grandparent) :foreground "yellow"))))
-    ;; Its own attribute should take highest precedence.
-    (should (equal (plist-get resolved :foreground) "yellow"))
-    ;; The leftmost parent's attribute (:weight) should take precedence.
-    (should (equal (plist-get resolved :weight) 'bold))
-    ;; It should inherit attributes from the rightmost parent if not otherwise specified.
-    (should (equal (plist-get resolved :background) "blue"))
-    (should (equal (plist-get resolved :slant) 'italic))))
+(ert-deftest resolve-face-test-zero ()
+  "Sanity."
+  (resolve-face-test-face-specs-set 'resolve-face-test-face-1
+                                    nil)
+  (should (null (resolve-face-attributes 'resolve-face-test-face-1))))
 
-(ert-deftest resolve-face-no-inheritance-test ()
-  "Test an anonymous face with no inheritance."
-  (let ((resolved (resolve-face '(:background "cyan"))))
-    (should (equal (plist-get resolved :background) "cyan"))
-    (should-not (plist-member resolved :foreground))))
+(ert-deftest resolve-face-test-one ()
+  "Walk up to the grandparent to get it but don't let the great grand parent override it."
+  (resolve-face-test-face-specs-set 'test-face-4
+                  '((t (:foreground "#ffffff")))
+                  'resolve-face-test-face-3
+                  '((t (:foreground "red" :inherit test-face-4)))
+                  'resolve-face-test-face-2
+                  '((t (:inherit resolve-face-test-face-3)))
+                  'resolve-face-test-face-1
+                  '((t (:inherit resolve-face-test-face-2))))
+  (should (equal '((:foreground . "red"))
+                 (resolve-face-attributes 'resolve-face-test-face-1 nil t))))
 
-(provide 'resolve-face-test)
+(ert-deftest resolve-face-test-two ()
+  "More inheritance."
+  (resolve-face-test-face-specs-set 'test-face-c
+                  '((t ()))
+                  'test-face-b
+                  '((t (:foreground "#222222")))
+                  'test-face-a
+                  '((t ()))
+                  'resolve-face-test-face-1
+                  '((t (:inherit (test-face-a test-face-b test-face-c)))))
+  (should (equal '((:foreground . "#222222"))
+                 (resolve-face-attributes 'resolve-face-test-face-1 nil t))))
+
+(ert-deftest resolve-face-test-three ()
+  "in a list"
+  (resolve-face-test-face-specs-set 'resolve-face-test-face-1
+                  '((t (:foreground "#111111" :background "#222222"))))
+  (should (equal '((:foreground . "#111111")
+                   (:background . "#222222"))
+                 (resolve-face-attributes 'resolve-face-test-face-1 nil t))))
+
+(ert-deftest resolve-face-test-four ()
+  "not in a list"
+  (resolve-face-test-face-specs-set 'resolve-face-test-face-1
+                  '((t :foreground "#111111" :background "#222222")))
+  (should (equal '((:foreground . "#111111")
+                   (:background . "#222222"))
+                 (resolve-face-attributes 'resolve-face-test-face-1 nil t))))
+
+ (provide 'resolve-face-test)
 
 ;;; resolve-face-test.el ends here

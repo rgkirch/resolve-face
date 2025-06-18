@@ -2,55 +2,11 @@
 
 * Resolve Face
 
-This package provides a single utility function, =resolve-face=, designed to fully resolve any Emacs face specification into a final, flat property list (plist) of its visual attributes.
+This package provides ~face-attribute+~ which is an enhancement of ~face-attribute~ in that ~face-attribute+~ supports anonymous face specs.
 
-It correctly handles:
-- Named faces (e.g., ='font-lock-warning-face=)
-- Anonymous faces (e.g., ='(:weight bold)=)
-- Single inheritance (e.g., ='(:inherit error)=)
-- Multiple inheritance (e.g., ='(:inherit (face-a face-b))=)
+This package also provides ~resolve-face-attributes~ which calls ~face-attribute+~ for each face attribute giving you a fully resolved, normalized face spec.
 
-The function traverses the entire inheritance tree and returns a plist containing only the final, effective visual attributes (like =:foreground=, =:background=, =:weight=, etc.), excluding the structural =:inherit= property itself.
-
-** Motivation
-
-While Emacs's face system is powerful, it can be difficult to determine the final appearance of text that has a complex face applied to it. The built-in =face-attribute= function works well for individual attributes but does not provide a single, comprehensive view of a fully resolved face. This utility solves that problem by providing a "what you see is what you get" plist for any given face.
-
-** Installation
-
-Place =resolve-face.el= in your Emacs =load-path= and require it in your configuration:
-
-#+BEGIN_SRC emacs-lisp
-(require 'resolve-face)
-#+END_SRC
-
-** Usage
-
-The package exposes one function: =resolve-face=.
-
-*** Function: =resolve-face= (FACE)
-
-Return a resolved plist of visual attributes for FACE.
-
-FACE can be a named face symbol (e.g., ='font-lock-warning-face=) or an anonymous face plist (e.g., ='(:inherit error :weight bold)=).
-
-Example:
-
-#+begin_src emacs-lisp :results verbatim
-;; Resolve a named face that inherits from 'warning'
-(resolve-face 'font-lock-warning-face)
-#+end_src
-
-RESULTS:
-: (:foreground "#ECBE7B")
-
-#+begin_src emacs-lisp :results verbatim
-;; Resolve an anonymous face with multiple inheritance
-(resolve-face '(:inherit (bold-italic warning) :foreground "blue"))
-#+end_src
-
-RESULTS:
-: (:foreground "blue" :weight bold :slant italic :foreground "#ECBE7B")
+* This package is used in [[https://github.com/rgkirch/propertized-text-to-svg][propertized-text-to-svg]] to normalize a face.
 
 * See [[https://github.com/rgkirch/my-emacs-packages][my other emacs packages]]
 * License
