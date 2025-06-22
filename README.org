@@ -6,6 +6,18 @@ This package provides ~face-attribute+~ which is an enhancement of ~face-attribu
 
 This package also provides ~resolve-face-attributes~ which calls ~face-attribute+~ for each face attribute giving you a fully resolved, normalized face spec.
 
+#+begin_src emacs-lisp :results verbatim
+(resolve-face-attributes 'treemacs-root-remote-face nil t)
+#+end_src
+
+: ((:height . 1.2) (:weight . bold) (:foreground . "#c678dd"))
+
+#+begin_src emacs-lisp :results verbatim
+(resolve-face-attributes 'treemacs-root-remote-face nil 'default)
+#+end_src
+
+: ((:family . "Adwaita Mono") (:foundry . "UKWN") (:width . normal) (:height . 189) (:weight . bold) (:slant . normal) (:underline) (:overline) (:extend) (:strike-through) (:box) (:inverse-video) (:foreground . "#c678dd") (:background . "#282c34") (:stipple) (:inherit))
+
 * This package is used in [[https://github.com/rgkirch/propertized-text-to-svg][propertized-text-to-svg]] to normalize a face.
 
 * See [[https://github.com/rgkirch/my-emacs-packages][my other emacs packages]]
